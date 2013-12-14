@@ -1,0 +1,4 @@
+to compile the project execute "make".
+This project does more that we are supposed to do, it translates from pseudo pascal to MIPS instructions.
+To test :
+do a ./zyva ./test/"any program from there".p

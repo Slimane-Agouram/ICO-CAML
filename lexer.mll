@@ -1,65 +1,69 @@
-* file: lexer.mll *)
-(* Lexical analyzer returns one of the tokens:
-   the token NUM of a floating point number,
-   operators (PLUS, MINUS, MULTIPLY, DIVIDE, CARET, UMINUS),
-   or NEWLINE.  It skips all blanks and tabs, and unknown characters
-   and raises End_of_file on EOF. *)
-
 {
-  open Parser
-  exception Eof
-}
-let digit = ['0'-'9']
+exception Error
+open Parser
 
+let keywords = Hashtbl.create 17
+let check_keyword s =
+  try Hashtbl.find keywords s with Not_found -> IDENT s
+and add_keyword s k = Hashtbl.add keywords s k
+;;
+
+add_keyword "var" VAR ;
+add_keyword "alloc" ALLOC ;
+add_keyword "false" (BOOL false) ;
+add_keyword "true"  (BOOL true) ;
+add_keyword "read" READ ;
+add_keyword "write" WRITE ;
+add_keyword "writeln" WRITELN ;
+add_keyword "array" ARRAY ;
+add_keyword "of" OF ;
+add_keyword "do" DO ;
+add_keyword "begin" BEGIN ;
+add_keyword "end" END ;
+add_keyword "if" IF ;
+add_keyword "then" THEN ;
+add_keyword "else" ELSE ;
+add_keyword "while" WHILE ;
+add_keyword "type" TYPE ;
+add_keyword "function" FUNCTION ;
+add_keyword "procedure" PROCEDURE ;
+add_keyword "integer" INTEGER ;
+add_keyword "boolean" BOOLEAN ;
+add_keyword "program" PROGRAM ; ()
+;;
+
+}
 rule token = parse
-  | [' ' '\t']  { token lexbuf }
-  | '\n'  { NEWLINE }
-  | digit+
-  | "." digit+
-  | digit+ "." digit* as num
-    { NUM (float_of_string num) }
-  | '+'   { PLUS }
-  | '-'   { MINUS }
-  | '*'   { MULTIPLY }
-  | '/'   { DIVIDE }
-  | '('   { LPAREN }
-  | ')'   { RPAREN }
-  | ';'   { SEMICOLON }
-  | _     { token lexbuf }
- (* | "and" { AND }
-  | "or"  { OR }
-  | "not" { NOT }
-  | "<"   { LT }
-  | "<="  { LE }
-  | ">"   { GT }
-  | ">="  { GE }
-  | "="   { EQ }
-  | "<>"  { NE }
-  | "("   { LPAREN }
-  | ")"   { RPAREN }
-  | "["   { LBRACKET }
-  | "]"   { RBRACKET } 
-  | ","   { COMMA }
-  | ":="  { COLONEQ } 
-  | ":"   { COLON }
-  | "."   { DOT }
-  | "program"  { PROGRAM } 
-  | "begin"  { BEGIN }
-  | "end"  { END }
-  | "if"  { IF }
-  | "then"  { THEN }
-  | "else"  { ELSE }
-  | "while"  { WHILE }
-  | "do"  { DO }
-  | "procedure"  { PROCEDURE }
-  | "function"  { FUNCTION }
-  | "var"  { VAR }
-  | "new"  { NEW }
-  | "readln"  { READLN }
-  | "write"  { WRITE }
-  | "writeln"  { WRITELN }
-  | "integer"   { INTEGER }
-  | "boolean"  { BOOLEAN }
-  | "array"  { ARRAY }
-  | "of"  { OF } 
-  | eof   { raise Eof }
+    [' ' '\t' '\n']
+                   { token lexbuf }     (* skip blanks *)
+  | ['{']([^'}'])*['}'] { token lexbuf } (* skip comments *)
+  | '"' ( [^ '"' ] | "\\\"" ) * '"'
+                   { STRING (Lexing.lexeme lexbuf) }
+  | ['A'-'Z''a'-'z'] + ['0'-'9'] * ''' *
+                   {  check_keyword (Lexing.lexeme lexbuf) }
+  | ['0'-'9']+     { INT(int_of_string (Lexing.lexeme lexbuf)) }
+  | "."            { DOT }
+  | ";;"           { SEMISEMI }  
+  | ":="           { COLONEQUAL }
+  | "<>"           { LESSGREATER }
+  | "<="           { LESSEQUAL }
+  | ">="           { GREATEREQUAL }
+  | '<'            { LESS }
+  | '>'            { GREATER }
+  | ";"            { SEMI }
+  | ","            { COMMA }
+  | ':'            { COLON }
+  | '='            { EQUAL }
+  | '-'            { MINUS }
+  | '+'            { PLUS }
+  | '*'            { TIMES }
+  | '/'            { DIV }
+  | '('            { LPAREN }
+  | ')'            { RPAREN }
+  | '['            { LBRACKET }
+  | ']'            { RBRACKET }
+  | ""             { raise Error }
+
+
+
+
