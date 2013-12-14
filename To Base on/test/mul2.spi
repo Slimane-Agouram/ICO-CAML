@@ -1,0 +1,301 @@
+    
+    .data	
+nl:
+    .asciiz "\n"
+    .align 2
+allocs:
+    .asciiz "Alloc: "
+    .align 2
+Glob:
+    .space 4
+    .align 2
+Mem:
+    .space 16000    
+    .text
+    .globl __start
+    .align 2
+
+print_int:
+    li  $v0, 1
+    syscall 
+    j   $ra
+println_int:
+    li  $v0, 1
+    syscall 
+    la  $a0, nl
+    li  $v0, 4
+    syscall
+    j   $ra
+read_int:
+    li  $v0, 5
+    syscall 
+    j   $ra
+alloc:
+    sw  $a0, ($fp)              
+    sll $a0, $a0, 2
+    addu $v0, $fp, 4
+    addu $fp, $v0, $a0
+    j   $ra
+
+__start:
+    la    $fp, Mem
+    la    $gp, Glob
+    jal  main
+    li    $v0, 10
+    syscall
+
+
+    
+#FUNSTART matrix
+    matrix_f=0
+matrix:
+    move $t0, $ra
+    move $a1, $a0
+    move $a0, $a1
+    jal  alloc
+    move $a2, $v0
+    move $a3, $zero
+    b    L25
+L24:
+    move $a0, $a1
+    jal  alloc
+    sll  $t1, $a3, 2
+    addu $t1, $a2, $t1
+    sw   $v0, 0($t1)
+    add  $a3, $a3, 1
+L25:
+    blt  $a3, $a1, L24
+L26:
+    move $v0, $a2
+matrix_end:
+    move $ra, $t0
+    j    $ra
+    
+#FUNSTART set
+    set_f=0
+set:
+    sll  $v0, $a1, 2
+    addu $v0, $a0, $v0
+    lw   $v0, 0($v0)
+    sll  $a0, $a2, 2
+    addu $v0, $v0, $a0
+    sw   $a3, 0($v0)
+set_end:
+    j    $ra
+    
+#FUNSTART get
+    get_f=0
+get:
+    sll  $v0, $a1, 2
+    addu $v0, $a0, $v0
+    lw   $v0, 0($v0)
+    sll  $a0, $a2, 2
+    addu $v0, $v0, $a0
+    lw   $v0, 0($v0)
+get_end:
+    j    $ra
+    
+#FUNSTART lire
+    lire_f=20
+lire:
+    subu $sp, $sp, lire_f
+    sw   $ra, 0($sp) # store $194
+    sw   $s0, 4($sp) # store $195
+    sw   $s1, 8($sp) # store $196
+    sw   $s2, 12($sp) # store $197
+    sw   $s3, 16($sp) # store $198
+    move $s2, $a0
+    move $a0, $s2
+    jal  matrix
+    move $s3, $v0
+    move $s0, $zero
+    b    L28
+L27:
+    move $s1, $zero
+    b    L31
+L30:
+    jal  read_int
+    move $a0, $s3
+    move $a1, $s0
+    move $a2, $s1
+    move $a3, $v0
+    jal  set
+    add  $s1, $s1, 1
+L31:
+    blt  $s1, $s2, L30
+L32:
+    add  $s0, $s0, 1
+L28:
+    blt  $s0, $s2, L27
+L29:
+    move $v0, $s3
+lire_end:
+    lw   $ra, 0($sp) # load  $194
+    lw   $s0, 4($sp) # load  $195
+    lw   $s1, 8($sp) # load  $196
+    lw   $s2, 12($sp) # load  $197
+    lw   $s3, 16($sp) # load  $198
+    addu $sp, $sp, lire_f
+    j    $ra
+    
+#FUNSTART affiche
+    affiche_f=0
+affiche:
+    move $t1, $ra
+    move $a2, $a0
+    move $a3, $zero
+    b    L34
+L33:
+    move $t0, $zero
+    b    L37
+L36:
+    sll  $v0, $a3, 2
+    addu $v0, $a2, $v0
+    lw   $v0, 0($v0)
+    sll  $t2, $t0, 2
+    addu $v0, $v0, $t2
+    lw   $a0, 0($v0)
+    jal  println_int
+    add  $t0, $t0, 1
+L37:
+    blt  $t0, $a1, L36
+L38:
+    add  $a3, $a3, 1
+L34:
+    blt  $a3, $a1, L33
+affiche_end:
+    move $ra, $t1
+    j    $ra
+    
+#FUNSTART matmult
+    matmult_f=36
+matmult:
+    subu $sp, $sp, matmult_f
+    sw   $ra, 0($sp) # store $217
+    sw   $s0, 4($sp) # store $218
+    sw   $s1, 8($sp) # store $219
+    sw   $s2, 12($sp) # store $220
+    sw   $s3, 16($sp) # store $221
+    sw   $s4, 20($sp) # store $222
+    sw   $s5, 24($sp) # store $223
+    sw   $s6, 28($sp) # store $224
+    sw   $s7, 32($sp) # store $225
+    move $s6, $a0
+    move $s5, $a1
+    lw   $a0, 0($gp)
+    jal  matrix
+    move $s1, $v0
+    move $s2, $zero
+    b    L40
+L39:
+    move $s3, $zero
+    b    L43
+L42:
+    move $s4, $zero
+    move $s7, $zero
+    b    L46
+L45:
+    move $a0, $s6
+    move $a1, $s2
+    move $a2, $s4
+    jal  get
+    move $s0, $v0
+    move $a0, $s5
+    move $a1, $s4
+    move $a2, $s3
+    jal  get
+    mul  $t0, $s0, $v0
+    add  $s7, $s7, $t0
+    add  $s4, $s4, 1
+L46:
+    lw   $t0, 0($gp)
+    blt  $s4, $t0, L45
+L47:
+    move $a0, $s1
+    move $a1, $s2
+    move $a2, $s3
+    move $a3, $s7
+    jal  set
+    add  $s3, $s3, 1
+L43:
+    lw   $a3, 0($gp)
+    blt  $s3, $a3, L42
+L44:
+    add  $s2, $s2, 1
+L40:
+    lw   $a2, 0($gp)
+    blt  $s2, $a2, L39
+L41:
+    move $v0, $s1
+matmult_end:
+    lw   $ra, 0($sp) # load  $217
+    lw   $s0, 4($sp) # load  $218
+    lw   $s1, 8($sp) # load  $219
+    lw   $s2, 12($sp) # load  $220
+    lw   $s3, 16($sp) # load  $221
+    lw   $s4, 20($sp) # load  $222
+    lw   $s5, 24($sp) # load  $223
+    lw   $s6, 28($sp) # load  $224
+    lw   $s7, 32($sp) # load  $225
+    addu $sp, $sp, matmult_f
+    j    $ra
+    
+#FUNSTART pow
+    pow_f=12
+pow:
+    subu $sp, $sp, pow_f
+    sw   $ra, 0($sp) # store $230
+    sw   $s0, 4($sp) # store $231
+    sw   $s1, 8($sp) # store $232
+    move $s1, $a0
+    move $s0, $a1
+    li   $a2, 1
+    beq  $s1, $a2, L48
+L49:
+    sra  $a0, $s1, 1
+    move $a1, $s0
+    jal  pow
+    move $a0, $v0
+    move $a1, $v0
+    jal  matmult
+    sra  $a2, $s1, 1
+    sll  $a2, $a2, 1
+    beq  $a2, $s1, L51
+L52:
+    move $a0, $s0
+    move $a1, $v0
+    jal  matmult
+    b    pow_end
+L51:
+    b    pow_end
+L48:
+    move $v0, $s0
+pow_end:
+    lw   $ra, 0($sp) # load  $230
+    lw   $s0, 4($sp) # load  $231
+    lw   $s1, 8($sp) # load  $232
+    addu $sp, $sp, pow_f
+    j    $ra
+    
+#FUNSTART main
+    main_f=8
+main:
+    subu $sp, $sp, main_f
+    sw   $ra, 0($sp) # store $242
+    sw   $s0, 4($sp) # store $243
+    jal  read_int
+    sw   $v0, 0($gp)
+    lw   $s0, 0($gp)
+    lw   $a0, 0($gp)
+    jal  lire
+    move $a0, $s0
+    move $a1, $v0
+    jal  pow
+    move $a0, $v0
+    lw   $a1, 0($gp)
+    jal  affiche
+main_end:
+    lw   $ra, 0($sp) # load  $242
+    lw   $s0, 4($sp) # load  $243
+    addu $sp, $sp, main_f
+    j    $ra

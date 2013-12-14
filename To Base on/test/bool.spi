@@ -1,0 +1,177 @@
+    
+    .data	
+nl:
+    .asciiz "\n"
+    .align 2
+allocs:
+    .asciiz "Alloc: "
+    .align 2
+Glob:
+    .space 0
+    .align 2
+Mem:
+    .space 16000    
+    .text
+    .globl __start
+    .align 2
+
+print_int:
+    li  $v0, 1
+    syscall 
+    j   $ra
+println_int:
+    li  $v0, 1
+    syscall 
+    la  $a0, nl
+    li  $v0, 4
+    syscall
+    j   $ra
+read_int:
+    li  $v0, 5
+    syscall 
+    j   $ra
+alloc:
+    sw  $a0, ($fp)              
+    sll $a0, $a0, 2
+    addu $v0, $fp, 4
+    addu $fp, $v0, $a0
+    j   $ra
+
+__start:
+    la    $fp, Mem
+    la    $gp, Glob
+    jal  main
+    li    $v0, 10
+    syscall
+
+
+    
+#FUNSTART bnot
+    bnot_f=0
+bnot:
+    bne  $a0, $zero, L22
+L23:
+    li   $v0, 1
+    b    bnot_end
+L22:
+    move $v0, $zero
+bnot_end:
+    j    $ra
+    
+#FUNSTART band
+    band_f=0
+band:
+    move $v0, $a1
+    bne  $a0, $zero, L25
+L26:
+    move $v0, $zero
+    b    band_end
+L25:
+band_end:
+    j    $ra
+    
+#FUNSTART bor
+    bor_f=12
+bor:
+    subu $sp, $sp, bor_f
+    sw   $ra, 0($sp) # store $150
+    sw   $s0, 4($sp) # store $151
+    sw   $s1, 8($sp) # store $152
+    move $s0, $a1
+    jal  bnot
+    move $s1, $v0
+    move $a0, $s0
+    jal  bnot
+    move $a0, $s1
+    move $a1, $v0
+    jal  band
+    move $a0, $v0
+    jal  bnot
+bor_end:
+    lw   $ra, 0($sp) # load  $150
+    lw   $s0, 4($sp) # load  $151
+    lw   $s1, 8($sp) # load  $152
+    addu $sp, $sp, bor_f
+    j    $ra
+    
+#FUNSTART implies
+    implies_f=8
+implies:
+    subu $sp, $sp, implies_f
+    sw   $ra, 0($sp) # store $159
+    sw   $s0, 4($sp) # store $160
+    move $s0, $a1
+    jal  bnot
+    move $a0, $v0
+    move $a1, $s0
+    jal  bor
+implies_end:
+    lw   $ra, 0($sp) # load  $159
+    lw   $s0, 4($sp) # load  $160
+    addu $sp, $sp, implies_f
+    j    $ra
+    
+#FUNSTART pbool
+    pbool_f=0
+pbool:
+    move $a1, $ra
+    bne  $a0, $zero, L28
+L29:
+    move $a0, $zero
+    b    L30
+L28:
+    li   $a0, 1
+L30:
+    jal  println_int
+pbool_end:
+    move $ra, $a1
+    j    $ra
+    
+#FUNSTART test
+    test_f=8
+test:
+    subu $sp, $sp, test_f
+    sw   $ra, 0($sp) # store $177
+    sw   $s0, 4($sp) # store $178
+    jal  read_int
+    move $s0, $v0
+    b    L32
+L31:
+    sgt  $a0, $s0, 0
+    jal  pbool
+    sge  $a0, $s0, 0
+    sle  $a1, $s0, 0
+    jal  band
+    move $a0, $v0
+    jal  pbool
+    sgt  $a0, $s0, 0
+    sle  $a1, $s0, 0
+    jal  implies
+    move $a0, $v0
+    jal  pbool
+    jal  read_int
+    move $s0, $v0
+L32:
+    bne  $s0, $zero, L31
+L33:
+    sge  $a0, $s0, 0
+    sle  $a1, $s0, 0
+    jal  band
+    move $a0, $v0
+    jal  pbool
+test_end:
+    lw   $ra, 0($sp) # load  $177
+    lw   $s0, 4($sp) # load  $178
+    addu $sp, $sp, test_f
+    j    $ra
+    
+#FUNSTART main
+    main_f=4
+main:
+    subu $sp, $sp, main_f
+    sw   $ra, 0($sp) # store $186
+    jal  test
+main_end:
+    lw   $ra, 0($sp) # load  $186
+    addu $sp, $sp, main_f
+    j    $ra

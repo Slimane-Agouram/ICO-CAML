@@ -1,0 +1,131 @@
+    
+    .data	
+nl:
+    .asciiz "\n"
+    .align 2
+allocs:
+    .asciiz "Alloc: "
+    .align 2
+Glob:
+    .space 8
+    .align 2
+Mem:
+    .space 16000    
+    .text
+    .globl __start
+    .align 2
+
+print_int:
+    li  $v0, 1
+    syscall 
+    j   $ra
+println_int:
+    li  $v0, 1
+    syscall 
+    la  $a0, nl
+    li  $v0, 4
+    syscall
+    j   $ra
+read_int:
+    li  $v0, 5
+    syscall 
+    j   $ra
+alloc:
+    sw  $a0, ($fp)              
+    sll $a0, $a0, 2
+    addu $v0, $fp, 4
+    addu $fp, $v0, $a0
+    j   $ra
+
+__start:
+    la    $fp, Mem
+    la    $gp, Glob
+    jal  main
+    li    $v0, 10
+    syscall
+
+
+    
+#FUNSTART odd
+    odd_f=0
+odd:
+    sra  $v0, $a0, 1
+    sll  $v0, $v0, 1
+    sne  $v0, $a0, $v0
+odd_end:
+    j    $ra
+    
+#FUNSTART prod
+    prod_f=20
+prod:
+    subu $sp, $sp, prod_f
+    sw   $ra, 0($sp) # store $131
+    sw   $s0, 4($sp) # store $132
+    sw   $s1, 8($sp) # store $133
+    sw   $s2, 12($sp) # store $134
+    sw   $s3, 16($sp) # store $135
+    move $s3, $a0
+    move $s2, $a1
+    blt  $s3, $zero, L14
+L15:
+    move $s1, $s3
+    b    L16
+L14:
+    sub  $s1, $zero, $s3
+L16:
+    move $s0, $zero
+    b    L18
+L17:
+    move $a0, $s1
+    jal  odd
+    beq  $v0, $zero, L22
+L20:
+    add  $s0, $s0, $s2
+L22:
+    sra  $s1, $s1, 1
+    sll  $s2, $s2, 1
+L18:
+    bgt  $s1, $zero, L17
+L19:
+    blt  $s3, $zero, L23
+L24:
+    move $v0, $s0
+    b    prod_end
+L23:
+    sub  $v0, $zero, $s0
+prod_end:
+    lw   $ra, 0($sp) # load  $131
+    lw   $s0, 4($sp) # load  $132
+    lw   $s1, 8($sp) # load  $133
+    lw   $s2, 12($sp) # load  $134
+    lw   $s3, 16($sp) # load  $135
+    addu $sp, $sp, prod_f
+    j    $ra
+    
+#FUNSTART main
+    main_f=4
+main:
+    subu $sp, $sp, main_f
+    sw   $ra, 0($sp) # store $140
+    jal  read_int
+    sw   $v0, 0($gp)
+    jal  read_int
+    sw   $v0, 4($gp)
+    b    L27
+L26:
+    lw   $a0, 0($gp)
+    lw   $a1, 4($gp)
+    jal  prod
+    move $a0, $v0
+    jal  println_int
+    jal  read_int
+    sw   $v0, 0($gp)
+    jal  read_int
+    sw   $v0, 4($gp)
+L27:
+    lw   $v0, 0($gp)
+    bne  $v0, $zero, L26
+main_end:
+    lw   $ra, 0($sp) # load  $140
+    addu $sp, $sp, main_f
+    j    $ra

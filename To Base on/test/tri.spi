@@ -1,0 +1,160 @@
+    
+    .data	
+nl:
+    .asciiz "\n"
+    .align 2
+allocs:
+    .asciiz "Alloc: "
+    .align 2
+Glob:
+    .space 16
+    .align 2
+Mem:
+    .space 16000    
+    .text
+    .globl __start
+    .align 2
+
+print_int:
+    li  $v0, 1
+    syscall 
+    j   $ra
+println_int:
+    li  $v0, 1
+    syscall 
+    la  $a0, nl
+    li  $v0, 4
+    syscall
+    j   $ra
+read_int:
+    li  $v0, 5
+    syscall 
+    j   $ra
+alloc:
+    sw  $a0, ($fp)              
+    sll $a0, $a0, 2
+    addu $v0, $fp, 4
+    addu $fp, $v0, $a0
+    j   $ra
+
+__start:
+    la    $fp, Mem
+    la    $gp, Glob
+    jal  main
+    li    $v0, 10
+    syscall
+
+
+    
+#FUNSTART insertion
+    insertion_f=0
+insertion:
+    li   $a1, 1
+    b    L13
+L12:
+    lw   $v0, 12($gp)
+    sll  $a0, $a1, 2
+    addu $v0, $v0, $a0
+    lw   $a3, 0($v0)
+    move $a2, $a1
+    bgt  $a2, $zero, L15
+L16:
+    move $v0, $zero
+    b    L19
+L15:
+    lw   $v0, 12($gp)
+    sub  $a0, $a2, 1
+    sll  $a0, $a0, 2
+    addu $v0, $v0, $a0
+    lw   $v0, 0($v0)
+    sgt  $v0, $v0, $a3
+    b    L19
+L18:
+    lw   $v0, 12($gp)
+    sub  $a0, $a2, 1
+    sll  $a0, $a0, 2
+    addu $v0, $v0, $a0
+    lw   $v0, 0($v0)
+    lw   $a0, 12($gp)
+    sll  $t0, $a2, 2
+    addu $a0, $a0, $t0
+    sw   $v0, 0($a0)
+    sub  $a2, $a2, 1
+    bgt  $a2, $zero, L21
+L22:
+    move $v0, $zero
+    b    L19
+L21:
+    lw   $v0, 12($gp)
+    sub  $a0, $a2, 1
+    sll  $a0, $a0, 2
+    addu $v0, $v0, $a0
+    lw   $v0, 0($v0)
+    sgt  $v0, $v0, $a3
+L19:
+    bne  $v0, $zero, L18
+L20:
+    lw   $v0, 12($gp)
+    sll  $a0, $a2, 2
+    addu $v0, $v0, $a0
+    sw   $a3, 0($v0)
+    add  $a1, $a1, 1
+L13:
+    lw   $v0, 0($gp)
+    blt  $a1, $v0, L12
+insertion_end:
+    j    $ra
+    
+#FUNSTART main
+    main_f=4
+main:
+    subu $sp, $sp, main_f
+    sw   $ra, 0($sp) # store $148
+    li   $a0, 100
+    jal  alloc
+    sw   $v0, 12($gp)
+    sw   $zero, 4($gp)
+    jal  read_int
+    sw   $v0, 8($gp)
+    b    L25
+L24:
+    lw   $v0, 8($gp)
+    lw   $a0, 12($gp)
+    lw   $a1, 4($gp)
+    sll  $a1, $a1, 2
+    addu $a0, $a0, $a1
+    sw   $v0, 0($a0)
+    lw   $v0, 4($gp)
+    add  $v0, $v0, 1
+    sw   $v0, 4($gp)
+    jal  read_int
+    sw   $v0, 8($gp)
+L25:
+    lw   $v0, 8($gp)
+    bne  $v0, $zero, L24
+L26:
+    lw   $v0, 4($gp)
+    sw   $v0, 0($gp)
+    lw   $a0, 0($gp)
+    jal  println_int
+    jal  insertion
+    sw   $zero, 4($gp)
+    b    L28
+L27:
+    lw   $v0, 12($gp)
+    lw   $a0, 4($gp)
+    sll  $a0, $a0, 2
+    addu $v0, $v0, $a0
+    lw   $a0, 0($v0)
+    jal  println_int
+    lw   $v0, 4($gp)
+    add  $v0, $v0, 1
+    sw   $v0, 4($gp)
+L28:
+    lw   $v0, 4($gp)
+    lw   $a0, 0($gp)
+    blt  $v0, $a0, L27
+main_end:
+    lw   $ra, 0($sp) # load  $148
+    addu $sp, $sp, main_f
+    j    $ra

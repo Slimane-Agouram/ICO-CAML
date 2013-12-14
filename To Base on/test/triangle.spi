@@ -1,0 +1,114 @@
+    
+    .data	
+nl:
+    .asciiz "\n"
+    .align 2
+allocs:
+    .asciiz "Alloc: "
+    .align 2
+Glob:
+    .space 4
+    .align 2
+Mem:
+    .space 16000    
+    .text
+    .globl __start
+    .align 2
+
+print_int:
+    li  $v0, 1
+    syscall 
+    j   $ra
+println_int:
+    li  $v0, 1
+    syscall 
+    la  $a0, nl
+    li  $v0, 4
+    syscall
+    j   $ra
+read_int:
+    li  $v0, 5
+    syscall 
+    j   $ra
+alloc:
+    sw  $a0, ($fp)              
+    sll $a0, $a0, 2
+    addu $v0, $fp, 4
+    addu $fp, $v0, $a0
+    j   $ra
+
+__start:
+    la    $fp, Mem
+    la    $gp, Glob
+    jal  main
+    li    $v0, 10
+    syscall
+
+
+    
+#FUNSTART triangle
+    triangle_f=0
+triangle:
+    move $a2, $ra
+    move $t2, $a0
+    move $t1, $zero
+    add  $a0, $t2, 1
+    jal  alloc
+    move $t3, $v0
+    b    L13
+L12:
+    sub  $t0, $t1, 1
+    b    L16
+L15:
+    sub  $a1, $t0, 1
+    sll  $a1, $a1, 2
+    addu $a1, $t3, $a1
+    lw   $a1, 0($a1)
+    sll  $a3, $t0, 2
+    addu $a3, $t3, $a3
+    lw   $a3, 0($a3)
+    add  $a1, $a1, $a3
+    sll  $a3, $t0, 2
+    addu $a3, $t3, $a3
+    sw   $a1, 0($a3)
+    sub  $t0, $t0, 1
+L16:
+    bgt  $t0, $zero, L15
+L17:
+    li   $a1, 1
+    sw   $a1, 0($t3)
+    li   $a1, 1
+    sll  $a3, $t1, 2
+    addu $a3, $t3, $a3
+    sw   $a1, 0($a3)
+    move $t0, $zero
+    b    L19
+L18:
+    sll  $a1, $t0, 2
+    addu $a1, $t3, $a1
+    lw   $a0, 0($a1)
+    jal  println_int
+    add  $t0, $t0, 1
+L19:
+    ble  $t0, $t1, L18
+L20:
+    add  $t1, $t1, 1
+L13:
+    ble  $t1, $t2, L12
+triangle_end:
+    move $ra, $a2
+    j    $ra
+    
+#FUNSTART main
+    main_f=4
+main:
+    subu $sp, $sp, main_f
+    sw   $ra, 0($sp) # store $138
+    jal  read_int
+    sw   $v0, 0($gp)
+    lw   $a0, 0($gp)
+    jal  triangle
+main_end:
+    lw   $ra, 0($sp) # load  $138
+    addu $sp, $sp, main_f
+    j    $ra

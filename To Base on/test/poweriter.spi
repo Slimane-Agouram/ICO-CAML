@@ -1,0 +1,86 @@
+    
+    .data	
+nl:
+    .asciiz "\n"
+    .align 2
+allocs:
+    .asciiz "Alloc: "
+    .align 2
+Glob:
+    .space 8
+    .align 2
+Mem:
+    .space 16000    
+    .text
+    .globl __start
+    .align 2
+
+print_int:
+    li  $v0, 1
+    syscall 
+    j   $ra
+println_int:
+    li  $v0, 1
+    syscall 
+    la  $a0, nl
+    li  $v0, 4
+    syscall
+    j   $ra
+read_int:
+    li  $v0, 5
+    syscall 
+    j   $ra
+alloc:
+    sw  $a0, ($fp)              
+    sll $a0, $a0, 2
+    addu $v0, $fp, 4
+    addu $fp, $v0, $a0
+    j   $ra
+
+__start:
+    la    $fp, Mem
+    la    $gp, Glob
+    jal  main
+    li    $v0, 10
+    syscall
+
+
+    
+#FUNSTART power
+    power_f=0
+power:
+    li   $v0, 1
+    b    L13
+L12:
+    sra  $a2, $a1, 1
+    sll  $a2, $a2, 1
+    beq  $a1, $a2, L17
+L15:
+    mul  $v0, $v0, $a0
+L17:
+    sra  $a1, $a1, 1
+    mul  $a0, $a0, $a0
+L13:
+    bgt  $a1, $zero, L12
+L14:
+power_end:
+    j    $ra
+    
+#FUNSTART main
+    main_f=4
+main:
+    subu $sp, $sp, main_f
+    sw   $ra, 0($sp) # store $126
+    jal  read_int
+    sw   $v0, 0($gp)
+    jal  read_int
+    sw   $v0, 4($gp)
+    lw   $a0, 0($gp)
+    lw   $a1, 4($gp)
+    jal  power
+    move $a0, $v0
+    jal  println_int
+main_end:
+    lw   $ra, 0($sp) # load  $126
+    addu $sp, $sp, main_f
+    j    $ra
