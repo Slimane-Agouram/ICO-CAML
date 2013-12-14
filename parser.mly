@@ -1,5 +1,6 @@
 %{
 open Pp
+open Printf
 %}
 %token <int> INT
 %token <string> IDENT
