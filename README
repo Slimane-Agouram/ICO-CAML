@@ -1,0 +1,16 @@
+Projet ICO :
+Compilation & printing abstract tree of a pseudoPascal file .
+
+testing :
+execute in this order: 
+ocamlyacc parser.mly
+ocamlc -c parser.mli
+ocamlc -c parser.ml
+ocamllex lexer.mll
+ocamlc -c lexer.mli
+ocamlc -c main.ml
+
+then make the default by typing : make
+
+then you’re good to go : 
+execute ./pseudopascal fact3.p (you can test any pseudo pascal file (.p) by entering it’s directory)
