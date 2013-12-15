@@ -14,3 +14,18 @@ then make the project by typing : make
 
 then you’re good to go : 
 execute ./pseudopascal fact3.p (you can test any pseudo pascal file (.p) by entering its directory)
+
+files?
+lexer.mll : LEX file containing formal syntax of the pseudo pascal language
+parser.mly : YACC file containing the grammar used to parse the buffer of syntax 
+pp.mli : OCAML interface file defining different Pseudopascal langage structures (program,function, procedure …)
+main.ml : we have the lexer and we have the parser, this file joins the 2 to make a fully functional syntax parser.
+
+sources & docs : 
+http://www.matt-mcdonnell.com/code/code_ocaml/lexing/lexing.html
+http://plus.kaist.ac.kr/~shoh/ocaml/ocamllex-ocamlyacc/ocamllex-tutorial/ocamllex-tutorial.html
+http://plus.kaist.ac.kr/~shoh/ocaml/ocamllex-ocamlyacc/ocamlyacc-tutorial/ 
+http://www.cs.bilkent.edu.tr/~guvenir/courses/CS315/lex-yacc/linux.html
+http://tldp.org/HOWTO/Lex-YACC-HOWTO-4.html
+http://dinosaur.compilertools.net/yacc/index.html
+http://cs.au.dk/~mis/dOvs/slides/37a-abstractsyntaxtrees.pdf
