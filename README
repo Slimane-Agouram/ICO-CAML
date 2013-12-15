@@ -10,7 +10,7 @@ ocamllex lexer.mll
 ocamlc -c lexer.mli
 ocamlc -c main.ml
 
-then make the default by typing : make
+then make the project by typing : make
 
 then you’re good to go : 
-execute ./pseudopascal fact3.p (you can test any pseudo pascal file (.p) by entering it’s directory)
+execute ./pseudopascal fact3.p (you can test any pseudo pascal file (.p) by entering its directory)
