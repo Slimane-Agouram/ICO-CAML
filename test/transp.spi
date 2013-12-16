@@ -1,0 +1,203 @@
+    
+    .data	
+nl:
+    .asciiz "\n"
+    .align 2
+allocs:
+    .asciiz "Alloc: "
+    .align 2
+Glob:
+    .space 8
+    .align 2
+Mem:
+    .space 16000    
+    .text
+    .globl __start
+    .align 2
+
+print_int:
+    li  $v0, 1
+    syscall 
+    j   $ra
+println_int:
+    li  $v0, 1
+    syscall 
+    la  $a0, nl
+    li  $v0, 4
+    syscall
+    j   $ra
+read_int:
+    li  $v0, 5
+    syscall 
+    j   $ra
+alloc:
+    sw  $a0, ($fp)              
+    sll $a0, $a0, 2
+    addu $v0, $fp, 4
+    addu $fp, $v0, $a0
+    j   $ra
+
+__start:
+    la    $fp, Mem
+    la    $gp, Glob
+    jal  main
+    li    $v0, 10
+    syscall
+
+
+    
+#FUNSTART affiche
+    affiche_f=0
+affiche:
+    move $t1, $ra
+    move $a2, $a0
+    move $a3, $zero
+    b    L19
+L18:
+    move $t0, $zero
+    b    L22
+L21:
+    sll  $v0, $a3, 2
+    addu $v0, $a1, $v0
+    lw   $v0, 0($v0)
+    sll  $t2, $t0, 2
+    addu $v0, $v0, $t2
+    lw   $a0, 0($v0)
+    jal  println_int
+    add  $t0, $t0, 1
+L22:
+    blt  $t0, $a2, L21
+L23:
+    add  $a3, $a3, 1
+L19:
+    blt  $a3, $a2, L18
+affiche_end:
+    move $ra, $t1
+    j    $ra
+    
+#FUNSTART malloc
+    malloc_f=0
+malloc:
+    move $t0, $ra
+    move $a1, $a0
+    move $a0, $a1
+    jal  alloc
+    move $a2, $v0
+    move $a3, $zero
+    b    L25
+L24:
+    move $a0, $a1
+    jal  alloc
+    sll  $t1, $a3, 2
+    addu $t1, $a2, $t1
+    sw   $v0, 0($t1)
+    add  $a3, $a3, 1
+L25:
+    blt  $a3, $a1, L24
+L26:
+    move $v0, $a2
+malloc_end:
+    move $ra, $t0
+    j    $ra
+    
+#FUNSTART mread
+    mread_f=8
+mread:
+    subu $sp, $sp, mread_f
+    sw   $ra, 0($sp) # store $157
+    sw   $s0, 4($sp) # store $158
+    move $s0, $a0
+    move $a0, $s0
+    jal  malloc
+    move $a1, $v0
+    move $a2, $zero
+    b    L28
+L27:
+    move $a3, $zero
+    b    L31
+L30:
+    jal  read_int
+    sll  $t0, $a2, 2
+    addu $t0, $a1, $t0
+    lw   $t0, 0($t0)
+    sll  $t1, $a3, 2
+    addu $t0, $t0, $t1
+    sw   $v0, 0($t0)
+    add  $a3, $a3, 1
+L31:
+    blt  $a3, $s0, L30
+L32:
+    add  $a2, $a2, 1
+L28:
+    blt  $a2, $s0, L27
+L29:
+    move $v0, $a1
+mread_end:
+    lw   $ra, 0($sp) # load  $157
+    lw   $s0, 4($sp) # load  $158
+    addu $sp, $sp, mread_f
+    j    $ra
+    
+#FUNSTART trans
+    trans_f=0
+trans:
+    sub  $a3, $a0, 1
+    b    L34
+L33:
+    sub  $t0, $a0, 1
+    b    L37
+L36:
+    sll  $v0, $a3, 2
+    addu $v0, $a1, $v0
+    lw   $v0, 0($v0)
+    sll  $a2, $t0, 2
+    addu $v0, $v0, $a2
+    lw   $t2, 0($v0)
+    sll  $v0, $t0, 2
+    addu $v0, $a1, $v0
+    lw   $v0, 0($v0)
+    sll  $a2, $a3, 2
+    addu $v0, $v0, $a2
+    lw   $v0, 0($v0)
+    sll  $a2, $a3, 2
+    addu $a2, $a1, $a2
+    lw   $a2, 0($a2)
+    sll  $t1, $t0, 2
+    addu $a2, $a2, $t1
+    sw   $v0, 0($a2)
+    sll  $v0, $t0, 2
+    addu $v0, $a1, $v0
+    lw   $v0, 0($v0)
+    sll  $a2, $a3, 2
+    addu $v0, $v0, $a2
+    sw   $t2, 0($v0)
+    sub  $t0, $t0, 1
+L37:
+    bgt  $t0, $a3, L36
+L38:
+    sub  $a3, $a3, 1
+L34:
+    bge  $a3, $zero, L33
+trans_end:
+    j    $ra
+    
+#FUNSTART main
+    main_f=4
+main:
+    subu $sp, $sp, main_f
+    sw   $ra, 0($sp) # store $201
+    jal  read_int
+    sw   $v0, 0($gp)
+    lw   $a0, 0($gp)
+    jal  mread
+    sw   $v0, 4($gp)
+    lw   $a0, 0($gp)
+    lw   $a1, 4($gp)
+    jal  trans
+    lw   $a0, 0($gp)
+    lw   $a1, 4($gp)
+    jal  affiche
+main_end:
+    lw   $ra, 0($sp) # load  $201
+    addu $sp, $sp, main_f
+    j    $ra

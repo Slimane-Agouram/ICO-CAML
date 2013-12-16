@@ -1,7 +1,7 @@
 TARGET = pseudopascal
 
-pseudopascal: lexer.cmo parser.cmo main.cmo
-	ocamlc -o $@ lexer.cmo parser.cmo main.cmo
+pseudopascal: lexer.cmo parser.cmo print.cmo main.cmo 
+	ocamlc -o $@ lexer.cmo parser.cmo print.cmo main.cmo 
 
 depend:
 	ocamldep *.ml *.mli > .depend
