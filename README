@@ -18,7 +18,7 @@ execute ./pseudopascal fact3.p (you can test any pseudo pascal file (.p) by ente
 files?
 lexer.mll : LEX file containing formal syntax of the pseudo pascal language
 parser.mly : YACC file containing the grammar used to parse the buffer of syntax 
-pp.mli : OCAML interface file defining different Pseudopascal langage structures (program,function, procedure …)
+pp.mli : OCAML interface file defining different Pseudopascal abstract syntax structures (program,function, procedure …)
 main.ml : we have the lexer and we have the parser, this file joins the 2 to make a fully functional syntax parser.
 
 sources & docs : 
